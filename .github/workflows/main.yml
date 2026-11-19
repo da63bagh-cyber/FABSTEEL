@@ -17,8 +17,14 @@ jobs:
       - name: Unzip project
         run: unzip -q -o "$(ls *.zip | sort -V | tail -1)"
       - name: Build debug APK
+        shell: bash
         working-directory: FabSteelARQC
-        run: gradle assembleDebug --stacktrace
+        run: gradle assembleDebug --stacktrace 2>&1 | tee ../build.log
+      - name: Show errors
+        if: failure()
+        shell: bash
+        run: |
+          grep -h "^e: " build.log | sed 's#file:///.*/arqc/##' | head -30 | while IFS= read -r l; do echo "::error::$l"; done
       - uses: actions/upload-artifact@v4
         with:
           name: FabSteelARQC-debug-apk
